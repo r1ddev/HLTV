@@ -25,10 +25,6 @@ export interface MatchPreview {
     event?: Event;
     title?: string;
     live: boolean;
-    liveScore: {
-        team1: number;
-        team2: number;
-    };
     stars: number;
 }
 export declare const getMatches: (config: HLTVConfig) => ({ eventIds, eventType, filter, teamIds }?: GetMatchesArguments) => Promise<MatchPreview[]>;

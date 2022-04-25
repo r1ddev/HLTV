@@ -24,6 +24,7 @@ export interface FullMatchResult {
     date: number;
     team1: ResultTeam;
     team2: ResultTeam;
+    event: string;
     stars: number;
     format: string;
     map?: GameMap;
