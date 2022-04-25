@@ -33,6 +33,7 @@ export interface FullMatchResult {
   date: number
   team1: ResultTeam
   team2: ResultTeam
+  event: string
   stars: number
   format: string
   map?: GameMap
@@ -121,6 +122,8 @@ export const getResults =
               logo: el.find('img.team-logo').last().attr('src')
             }
 
+            const event = el.find(".event-name").text();
+
             const [team1Result, team2Result] = el
               .find('.result-score')
               .text()
@@ -133,6 +136,7 @@ export const getResults =
               date,
               team1,
               team2,
+              event,
               result: { team1: team1Result, team2: team2Result },
               ...(format.includes('bo')
                 ? { format }
