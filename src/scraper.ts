@@ -1,7 +1,10 @@
-import * as cheerio from 'cheerio'
+import * as cheerio from 'cheerio';
+import { load } from 'cheerio';
 import { parseNumber } from './utils'
 
-export interface HLTVPage extends cheerio.Root {
+type CheerioRoot = ReturnType<typeof load>;
+
+export interface HLTVPage extends CheerioRoot {
   (selector: string): HLTVPageElement
 }
 
@@ -129,7 +132,7 @@ const attachMethods = (root: cheerio.Cheerio): HLTVPageElement => {
   return obj
 }
 
-export const HLTVScraper = (root: cheerio.Root): HLTVPage => {
+export const HLTVScraper = (root: CheerioRoot): HLTVPage => {
   const selector = (selector: string): HLTVPageElement => {
     return attachMethods(root(selector))
   }

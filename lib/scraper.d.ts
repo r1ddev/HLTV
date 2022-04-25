@@ -1,5 +1,6 @@
-import * as cheerio from 'cheerio';
-export interface HLTVPage extends cheerio.Root {
+import { load } from 'cheerio';
+declare type CheerioRoot = ReturnType<typeof load>;
+export interface HLTVPage extends CheerioRoot {
     (selector: string): HLTVPageElement;
 }
 export interface HLTVPageElement {
@@ -26,4 +27,5 @@ export interface HLTVPageElement {
     contents(): HLTVPageElement;
     filter(func: (index: number, element: HLTVPageElement) => boolean): HLTVPageElement;
 }
-export declare const HLTVScraper: (root: cheerio.Root) => HLTVPage;
+export declare const HLTVScraper: (root: CheerioRoot) => HLTVPage;
+export {};
