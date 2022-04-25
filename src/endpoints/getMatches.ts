@@ -32,10 +32,6 @@ export interface MatchPreview {
   event?: Event
   title?: string
   live: boolean
-  liveScore: {
-    team1: number
-    team2: number
-  }
   stars: number
 }
 
@@ -79,11 +75,6 @@ export const getMatches =
         const live = el.find('.matchTime.matchLive').text() === 'LIVE'
         const title = el.find('.matchInfoEmpty').text() || undefined
 
-        const liveScore = {
-          team1: Number(el.find('.matchTeam').first().find(".currentMapScore").text()),
-          team2: Number(el.find('.matchTeam').eq(1).find(".currentMapScore").text()),
-        }
-
         const date = el.find('.matchTime').numFromAttr('data-unix')
 
         let team1
@@ -110,6 +101,6 @@ export const getMatches =
         const eventName = el.find('.matchEventLogo').attr('title')
         const event = events.find((x) => x.name === eventName)
 
-        return { id, date, stars, title, team1, team2, format, event, live, liveScore }
+        return { id, date, stars, title, team1, team2, format, event, live }
       })
   }
