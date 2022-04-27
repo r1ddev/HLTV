@@ -191,7 +191,7 @@ type ConnectToScorebotParams = {
   onScoreboardUpdate?: (data: ScoreboardUpdate, done: () => void) => any
   onLogUpdate?: (data: LogUpdate, done: () => void) => any
   onFullLogUpdate?: (data: unknown, done: () => void) => any
-  onConnect?: () => any
+  onConnect?: (done: () => void) => any
   onDisconnect?: () => any
 }
 
@@ -230,7 +230,7 @@ export const connectToScorebot =
         const done = () => socket.close()
 
         if (onConnect) {
-          onConnect()
+          onConnect(done)
         }
 
         if (!reconnected) {
@@ -266,5 +266,9 @@ export const connectToScorebot =
           onDisconnect()
         }
       })
+
+      return {
+        socket,
+      }
     })
   }
