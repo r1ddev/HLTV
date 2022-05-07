@@ -159,7 +159,7 @@ declare type ConnectToScorebotParams = {
     onScoreboardUpdate?: (data: ScoreboardUpdate, done: () => void) => any;
     onLogUpdate?: (data: LogUpdate, done: () => void) => any;
     onFullLogUpdate?: (data: unknown, done: () => void) => any;
-    onConnect?: () => any;
+    onConnect?: (done: () => void) => any;
     onDisconnect?: () => any;
 };
 export declare const connectToScorebot: (config: HLTVConfig) => ({ id, onScoreboardUpdate, onLogUpdate, onFullLogUpdate, onConnect, onDisconnect }: ConnectToScorebotParams) => void;
