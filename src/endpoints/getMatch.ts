@@ -74,6 +74,7 @@ export interface Stream {
   name: string
   link: string
   viewers: number
+  lang?: string
 }
 
 export interface FullMatch {
@@ -381,21 +382,27 @@ function getPlayers($: HLTVPage) {
 }
 
 function getStreams($: HLTVPage): Stream[] {
-  return $('.stream-box-embed')
+  return $('.stream-box')
     .toArray()
     .filter((el) => el.find('.stream-flag').exists())
-    .map((streamEl) => ({
-      name: streamEl.text(),
-      link: streamEl.attr('data-stream-embed'),
-      viewers: streamEl.find('.viewers.gtSmartphone-only').numFromText()!
-    }))
+    .map((streamEl) => {
+      const streamBox = streamEl.find(".stream-box-embed");
+      const watchBox = streamEl.find(".watchbox-right");
+      return {
+        name: streamBox.text(),
+        link: streamBox.attr('data-stream-embed'),
+        viewers: watchBox.find('.viewers.gtSmartphone-only').numFromText()!,
+        lang: streamBox.find('.stream-flag').attr('title')
+      }
+    })
     .concat(
       $('.stream-box.hltv-live').exists()
         ? [
             {
               name: 'HLTV Live',
               link: $('.stream-box.hltv-live a').attr('href'),
-              viewers: -1
+              viewers: -1,
+              lang: ""
             }
           ]
         : []
@@ -409,7 +416,8 @@ function getStreams($: HLTVPage): Stream[] {
                 .text()
                 .replace('GOTV: connect', '')
                 .trim(),
-              viewers: -1
+              viewers: -1,
+              lang: ""
             }
           ]
         : []

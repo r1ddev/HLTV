@@ -4,8 +4,10 @@ const log = (promise: Promise<any>) =>
   promise
     .then((res) => console.dir(res, { depth: null }))
     .catch((err) => console.log(err))
-
-// log(HLTV.getMatch({ id: 2346924 }))
+    
+HLTV.getMatch({ id: 2356133 }).then(res => {
+  console.log(res.streams);
+});
 // log(HLTV.getMatches())
 // log(HLTV.getEvent({ id: 5741 }))
 // log(HLTV.getEvents())
@@ -22,6 +24,6 @@ const log = (promise: Promise<any>) =>
 // log(HLTV.getPastEvents({ startDate: '2019-3-1', endDate: '2019-3-29' }))
 // log(HLTV.getTeamRanking())
 // log(HLTV.getResults({ eventIds: [1617] }))
-const todayDate = "2022-04-25";
-log(HLTV.getResults({startDate: todayDate, endDate: todayDate}))
+// const todayDate = "2022-04-25";
+// log(HLTV.getResults({startDate: todayDate, endDate: todayDate}))
 // log(HLTV.getNews())

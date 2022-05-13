@@ -48,7 +48,7 @@ export declare class Hltv {
         onScoreboardUpdate?: ((data: import("./endpoints/connectToScorebot").ScoreboardUpdate, done: () => void) => any) | undefined;
         onLogUpdate?: ((data: import("./endpoints/connectToScorebot").LogUpdate, done: () => void) => any) | undefined;
         onFullLogUpdate?: ((data: unknown, done: () => void) => any) | undefined;
-        onConnect?: (() => any) | undefined;
+        onConnect?: ((done: () => void) => any) | undefined;
         onDisconnect?: (() => any) | undefined;
     }) => void;
     createInstance(config: Partial<HLTVConfig>): Hltv;

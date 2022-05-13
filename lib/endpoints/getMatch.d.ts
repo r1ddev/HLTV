@@ -54,6 +54,7 @@ export interface Stream {
     name: string;
     link: string;
     viewers: number;
+    lang?: string;
 }
 export interface FullMatch {
     id: number;
