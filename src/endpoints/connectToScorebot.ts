@@ -209,66 +209,71 @@ export const connectToScorebot =
       `https://www.hltv.org/matches/${id}/${generateRandomSuffix()}`,
       config.loadPage
     ).then(($) => {
-      const url = $('#scoreboardElement')
-        .attr('data-scorebot-url')!
-        .split(',')
-        .pop()!
-      const matchId = $('#scoreboardElement').attr('data-scorebot-id')
+      try {
+        const url = $('#scoreboardElement')
+          .attr('data-scorebot-url')
+          ?.split(',')
+          ?.pop()
+        const matchId = $('#scoreboardElement').attr('data-scorebot-id')
 
-      const socket = io.connect(url, {
-        agent: !config.httpAgent
-      })
+        if (url) {
+          const socket = io.connect(url, {
+            agent: !config.httpAgent
+          })
 
-      const initObject = JSON.stringify({
-        token: '',
-        listId: matchId
-      })
+          const initObject = JSON.stringify({
+            token: '',
+            listId: matchId
+          })
 
-      let reconnected = false
+          let reconnected = false
 
-      socket.on('connect', () => {
-        const done = () => socket.close()
+          socket.on('connect', () => {
+            const done = () => socket.close()
 
-        if (onConnect) {
-          onConnect(done)
-        }
+            if (onConnect) {
+              onConnect(done)
+            }
 
-        if (!reconnected) {
-          socket.emit('readyForMatch', initObject)
-        }
+            if (!reconnected) {
+              socket.emit('readyForMatch', initObject)
+            }
 
-        socket.on('scoreboard', (data: ScoreboardUpdate) => {
-          if (onScoreboardUpdate) {
-            onScoreboardUpdate(data, done)
+            socket.on('scoreboard', (data: ScoreboardUpdate) => {
+              if (onScoreboardUpdate) {
+                onScoreboardUpdate(data, done)
+              }
+            })
+
+            socket.on('log', (data: string) => {
+              if (onLogUpdate) {
+                onLogUpdate(JSON.parse(data), done)
+              }
+            })
+
+            socket.on('fullLog', (data: any) => {
+              if (onFullLogUpdate) {
+                onFullLogUpdate(JSON.parse(data), done)
+              }
+            })
+          })
+
+          socket.on('reconnect', () => {
+            reconnected = true
+            socket.emit('readyForMatch', initObject)
+          })
+
+          socket.on('disconnect', () => {
+            if (onDisconnect) {
+              onDisconnect()
+            }
+          })
+          return {
+            socket,
           }
-        })
-
-        socket.on('log', (data: string) => {
-          if (onLogUpdate) {
-            onLogUpdate(JSON.parse(data), done)
-          }
-        })
-
-        socket.on('fullLog', (data: any) => {
-          if (onFullLogUpdate) {
-            onFullLogUpdate(JSON.parse(data), done)
-          }
-        })
-      })
-
-      socket.on('reconnect', () => {
-        reconnected = true
-        socket.emit('readyForMatch', initObject)
-      })
-
-      socket.on('disconnect', () => {
-        if (onDisconnect) {
-          onDisconnect()
         }
-      })
-
-      return {
-        socket,
+      } catch (error) {
+        //console.log("");
       }
     })
   }
