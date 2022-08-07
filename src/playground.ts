@@ -5,9 +5,9 @@ const log = (promise: Promise<any>) =>
     .then((res) => console.dir(res, { depth: null }))
     .catch((err) => console.log(err))
     
-HLTV.getMatch({ id: 2356133 }).then(res => {
-  console.log(res.streams);
-});
+// HLTV.getMatch({ id: 2356133 }).then(res => {
+//   console.log(res.streams);
+// });
 // log(HLTV.getMatches())
 // log(HLTV.getEvent({ id: 5741 }))
 // log(HLTV.getEvents())
@@ -27,3 +27,37 @@ HLTV.getMatch({ id: 2356133 }).then(res => {
 // const todayDate = "2022-04-25";
 // log(HLTV.getResults({startDate: todayDate, endDate: todayDate}))
 // log(HLTV.getNews())
+
+const isEmptyObject = function(e: any) {
+	for (const t in e)
+		if (e.hasOwnProperty(t))
+			return false;
+	return true;
+}
+
+HLTV.connectToMatchesScorebot({
+  ids: [2357678],
+  onConnect: (done) => {},
+  onUpdate: (data) => {
+    if (data.mapScores && !isEmptyObject(data.mapScores)) {
+      let score: {
+        [teamId: string]: {
+          maps?: number,
+          current?: number,
+        }
+      } = {}
+
+      const currentMap = data.mapScores[Object.keys(data.mapScores).sort().reverse()[0]].scores;
+      Object.keys(currentMap).map(teamId => {
+        score[teamId] = {
+          maps: data.wins?.[teamId],
+          current: currentMap[teamId],
+        }
+      });
+
+      console.log(data.listId, score);
+    } else {
+      console.log(data.listId, "- -- -");
+    }
+  }
+})
