@@ -51,6 +51,65 @@ export declare class Hltv {
         onConnect?: ((done: () => void) => any) | undefined;
         onDisconnect?: (() => any) | undefined;
     }) => void;
+    connectToMatchesScorebot: ({ ids, onUpdate, onConnect, onDisconnect }: {
+        ids: number[];
+        onUpdate?: ((data: {
+            forcedLive: boolean;
+            forcedDead: boolean;
+            listId: number;
+            liveLog: {
+                '': boolean;
+                IrregularTeamKillsRequirement: boolean;
+                PlayersRequirement: boolean;
+                NoSuspectEventsInFirstRoundRequirement: boolean;
+                NotKnifeRoundRequirement: boolean;
+                BombInPlayRequirement: boolean;
+                KillsInFirstRoundRequirement: boolean;
+                'FiveKillsWhenEnemyElliminatedRequirement less than 5 five kills in round(s) []': boolean;
+                MatchStartRequirement: boolean;
+                MapNameRequirement: boolean;
+                NoDrawRoundsRequirement: boolean;
+                FirstRoundOverRequirement: boolean;
+                RoundOneMaxEquipmentValueRequirement: boolean;
+            };
+            mapScores?: {
+                [map: string]: {
+                    firstHalf: {
+                        ctScore: number;
+                        ctTeamDbId: number;
+                        tScore: number;
+                        tTeamDbId: number;
+                    };
+                    secondHalf: {
+                        ctScore: number;
+                        ctTeamDbId: number;
+                        tScore: number;
+                        tTeamDbId: number;
+                    };
+                    overtime: {
+                        ctScore: number;
+                        ctTeamDbId: number;
+                        tScore: number;
+                        tTeamDbId: number;
+                    };
+                    mapOrdinal: number;
+                    scores: {
+                        [teamId: string]: number;
+                    };
+                    currentCtId: number;
+                    currentTId: number;
+                    defaultWin: boolean;
+                    map: string;
+                    mapOver: boolean;
+                };
+            } | undefined;
+            wins?: {
+                [teamId: string]: number;
+            } | undefined;
+        }) => any) | undefined;
+        onConnect?: ((done: () => void) => any) | undefined;
+        onDisconnect?: (() => any) | undefined;
+    }) => void;
     createInstance(config: Partial<HLTVConfig>): Hltv;
     TEAM_PLACEHOLDER_IMAGE: string;
     PLAYER_PLACEHOLDER_IMAGE: string;
