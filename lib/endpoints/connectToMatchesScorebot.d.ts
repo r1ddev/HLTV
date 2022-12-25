@@ -1,3 +1,4 @@
+/// <reference types="socket.io-client" />
 import { HLTVConfig } from "../config";
 declare type MatchesScorebotHalf = {
     ctScore: number;
@@ -50,5 +51,9 @@ declare type ConnectToMatchesScorebotParams = {
     onConnect?: (done: () => void) => any;
     onDisconnect?: () => any;
 };
-export declare const connectToMatchesScorebot: (config: HLTVConfig) => ({ ids, onUpdate, onConnect, onDisconnect }: ConnectToMatchesScorebotParams) => void;
+declare type ConnectToMatchesScorebot = Promise<{
+    sendReadyIds: (ids: number[]) => void;
+    socket: SocketIOClient.Socket;
+}>;
+export declare const connectToMatchesScorebot: (config: HLTVConfig) => ({ ids, onUpdate, onConnect, onDisconnect }: ConnectToMatchesScorebotParams) => ConnectToMatchesScorebot;
 export {};

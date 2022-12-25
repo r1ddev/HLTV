@@ -56,62 +56,73 @@ type ConnectToMatchesScorebotParams = {
 	onUpdate?: (data: MatchesScorebotScores) => any
 	onConnect?: (done: () => void) => any
 	onDisconnect?: () => any
-  }
+}
+
+type ConnectToMatchesScorebot = Promise<{
+	sendReadyIds: (ids: number[]) => void,
+	socket: SocketIOClient.Socket,
+}>;
 
 export const connectToMatchesScorebot = (config: HLTVConfig) => ({
     ids,
     onUpdate,
     onConnect,
     onDisconnect
-  }: ConnectToMatchesScorebotParams) => {
-	fetchPage(
-		`https://www.hltv.org/`,
-		config.loadPage
-	).then(($) => {
-		try {
-			const url = $('body')
-				.attr('data-livescore-server-url')
-				?.split(',')
-				?.pop()
-				
-			if (url) {
-				const socket = io.connect(url, {
-					agent: !config.httpAgent,
-				});
-
-				socket.on("connect", () => {
-					const done = () => socket.close();
-
-					if (onConnect) {
-						onConnect(done);
-					}
-			
-					const initObject = JSON.stringify({
-						token: '',
-						listIds: ids
+}: ConnectToMatchesScorebotParams): ConnectToMatchesScorebot => {
+	return new Promise((resolve, reject) => {	
+		fetchPage(`https://www.hltv.org/`, config.loadPage).then(($) => {
+			try {
+				const url = $('body')
+					.attr('data-livescore-server-url')
+					?.split(',')
+					?.pop()
+					
+				if (url) {
+					const socket = io.connect(url, {
+						agent: !config.httpAgent,
 					});
-						
-					socket.emit('readyForScores', initObject);
-			
-					socket.on("score", (data: MatchesScorebotScores) => {
-						if (onUpdate) {
-							onUpdate(data);
+	
+					socket.on("connect", () => {
+						const done = () => socket.close();
+						const sendReadyIds = (ids: number[]) => {
+							const initObject = JSON.stringify({
+								token: '',
+								listIds: ids
+							});
+							socket.emit('readyForScores', initObject);
+						}
+	
+						if (onConnect) {
+							onConnect(done);
+						}
+				
+						sendReadyIds(ids);
+				
+						socket.on("score", (data: MatchesScorebotScores) => {
+							if (onUpdate) {
+								onUpdate(data);
+							}
+						});
+				
+						socket.on("reconnect", () => {
+							// console.log("reconnect");
+						});
+	
+						resolve({
+							sendReadyIds,
+							socket,
+						});
+					});
+				
+					socket.on("disconnect", () => {
+						if (onDisconnect) {
+							onDisconnect();
 						}
 					});
-			
-					socket.on("reconnect", () => {
-						// console.log("reconnect");
-					});
-				});
-			
-				socket.on("disconnect", () => {
-					if (onDisconnect) {
-						onDisconnect();
-					}
-				});
+				}
+			} catch (error) {
+				reject(error);
 			}
-		} catch (error) {
-			//console.log("");
-		}
+		});
 	});
 };

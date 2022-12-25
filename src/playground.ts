@@ -36,7 +36,7 @@ const isEmptyObject = function(e: any) {
 }
 
 HLTV.connectToMatchesScorebot({
-  ids: [2357678],
+  ids: [2360972],
   onConnect: (done) => {},
   onUpdate: (data) => {
     if (data.mapScores && !isEmptyObject(data.mapScores)) {
@@ -60,4 +60,8 @@ HLTV.connectToMatchesScorebot({
       console.log(data.listId, "- -- -");
     }
   }
-})
+}).then(({sendReadyIds}) => {
+  setTimeout(() => {
+    sendReadyIds([2360972, 2360975]);
+  }, 10*60*1000);
+});

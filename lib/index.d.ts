@@ -1,3 +1,4 @@
+/// <reference types="socket.io-client" />
 import { HLTVConfig } from './config';
 export declare class Hltv {
     private config;
@@ -109,7 +110,10 @@ export declare class Hltv {
         }) => any) | undefined;
         onConnect?: ((done: () => void) => any) | undefined;
         onDisconnect?: (() => any) | undefined;
-    }) => void;
+    }) => Promise<{
+        sendReadyIds: (ids: number[]) => void;
+        socket: SocketIOClient.Socket;
+    }>;
     createInstance(config: Partial<HLTVConfig>): Hltv;
     TEAM_PLACEHOLDER_IMAGE: string;
     PLAYER_PLACEHOLDER_IMAGE: string;
