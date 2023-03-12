@@ -25,12 +25,17 @@ import { connectToMatchesScorebot } from './endpoints/connectToMatchesScorebot'
 
 export class Hltv {
   constructor(private config: Partial<HLTVConfig> = {}) {
+
     if (config.httpAgent && !config.loadPage) {
-      config.loadPage = defaultLoadPage(config.httpAgent)
+      config.loadPage = defaultLoadPage(config.httpAgent, config.requestMethod)
     }
 
     if (!config.httpAgent) {
       config.httpAgent = defaultConfig.httpAgent
+    }
+
+    if (config.httpAgent && config.requestMethod) {
+      config.loadPage = defaultLoadPage(config.httpAgent, config.requestMethod)
     }
 
     if (!config.loadPage) {

@@ -1,4 +1,4 @@
-import { HLTV } from './index'
+import { HLTV, Hltv } from './index'
 
 const log = (promise: Promise<any>) =>
   promise
@@ -7,8 +7,8 @@ const log = (promise: Promise<any>) =>
     
 // HLTV.getMatch({ id: 2356133 }).then(res => {
 //   console.log(res.streams);
-// });
-// log(HLTV.getMatches())
+// });.
+// log(new Hltv({requestMethod: 'playwright'}).getMatches())
 // log(HLTV.getEvent({ id: 5741 }))
 // log(HLTV.getEvents())
 // log(HLTV.getMatchMapStats({ id: 115827 }))
@@ -35,33 +35,33 @@ const isEmptyObject = function(e: any) {
 	return true;
 }
 
-HLTV.connectToMatchesScorebot({
-  ids: [2360972],
-  onConnect: (done) => {},
-  onUpdate: (data) => {
-    if (data.mapScores && !isEmptyObject(data.mapScores)) {
-      let score: {
-        [teamId: string]: {
-          maps?: number,
-          current?: number,
-        }
-      } = {}
+// HLTV.connectToMatchesScorebot({
+//   ids: [2360972],
+//   onConnect: (done) => {},
+//   onUpdate: (data) => {
+//     if (data.mapScores && !isEmptyObject(data.mapScores)) {
+//       let score: {
+//         [teamId: string]: {
+//           maps?: number,
+//           current?: number,
+//         }
+//       } = {}
 
-      const currentMap = data.mapScores[Object.keys(data.mapScores).sort().reverse()[0]].scores;
-      Object.keys(currentMap).map(teamId => {
-        score[teamId] = {
-          maps: data.wins?.[teamId],
-          current: currentMap[teamId],
-        }
-      });
+//       const currentMap = data.mapScores[Object.keys(data.mapScores).sort().reverse()[0]].scores;
+//       Object.keys(currentMap).map(teamId => {
+//         score[teamId] = {
+//           maps: data.wins?.[teamId],
+//           current: currentMap[teamId],
+//         }
+//       });
 
-      console.log(data.listId, score);
-    } else {
-      console.log(data.listId, "- -- -");
-    }
-  }
-}).then(({sendReadyIds}) => {
-  setTimeout(() => {
-    sendReadyIds([2360972, 2360975]);
-  }, 10*60*1000);
-});
+//       console.log(data.listId, score);
+//     } else {
+//       console.log(data.listId, "- -- -");
+//     }
+//   }
+// }).then(({sendReadyIds}) => {
+//   setTimeout(() => {
+//     sendReadyIds([2360972, 2360975]);
+//   }, 10*60*1000);
+// });

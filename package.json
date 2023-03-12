@@ -1,6 +1,6 @@
 {
   "name": "hltv",
-  "version": "3.4.5",
+  "version": "3.4.6",
   "description": "The unofficial HLTV Node.js API",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -55,6 +55,7 @@
   "dependencies": {
     "@types/socket.io-client": "1.4.36",
     "cheerio": "1.0.0-rc.10",
+    "playwright": "^1.31.2",
     "request": "2.88.2",
     "socket.io-client": "2.4.0",
     "uuid": "8.3.2"
