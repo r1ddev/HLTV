@@ -1,9 +1,8 @@
 import { Agent as HttpsAgent } from 'https'
 import { Agent as HttpAgent } from 'http'
-import * as request from 'request'
+import { gotScraping } from 'got-scraping'
 import { chromium } from "playwright";
 import { sleep } from './utils';
-
 export interface HLTVConfig {
   loadPage: (url: string) => Promise<string>
   httpAgent: HttpsAgent | HttpAgent,
@@ -31,19 +30,8 @@ export const defaultLoadPage =
         await browser.close();
         resolve(html);
       } else {
-        request.get(
-          url,
-          {
-            gzip: true,
-            agent: httpAgent
-          },
-          (err, __, body) => {
-            if (err) {
-              throw err
-            }
-  
-            resolve(body)
-          }
+        gotScraping({ url, agent: { http: httpAgent, https: httpAgent } }).then(
+          (res) => resolve(res.body)
         )
       }
     })
