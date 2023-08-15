@@ -1,9 +1,10 @@
+import cheerio from 'cheerio'
 import { stringify } from 'querystring'
 import { HLTVConfig } from '../config'
 import { HLTVScraper } from '../scraper'
 import { Team } from '../shared/Team'
 import { Event } from '../shared/Event'
-import { fetchPage, getIdAt } from '../utils'
+import { fetchPage, parseNumber } from '../utils'
 
 export enum MatchEventType {
   All = 'All',
@@ -35,6 +36,79 @@ export interface MatchPreview {
   stars: number
 }
 
+export const parseMatchesPage = (html: string) => {
+  const $ = cheerio.load(html);
+
+  const events = $('.event-filter-popup a')
+    .toArray()
+    .map((el) => {
+      const $el = $(el);
+
+      const id = parseNumber($el.attr('href')?.split('=').pop());
+      const name = $el.find('.event-name').text();
+
+      return {
+        id,
+        name,
+      }
+    })
+    .concat(
+      $('.events-container a')
+        .toArray()
+        .map((el) => {
+          const $el = $(el);
+
+          const id = parseNumber($el.attr('href')?.split('=').pop());
+          const name = $el.find('.featured-event-tooltip-content').text()
+
+          return {
+            id,
+            name,
+          }
+        })
+    )
+
+  return $('.liveMatch-container')
+    .toArray()
+    .concat($('.upcomingMatch').toArray())
+    .map((el) => {
+      const $el = $(el);
+
+      const id = parseNumber($el.find('.a-reset').attr('href')?.split('/')[2]) ?? 0;
+      const stars = 5 - $el.find('.matchRating i.faded').length
+      const live = $el.find('.matchTime.matchLive').text() === 'LIVE'
+      const title = $el.find('.matchInfoEmpty').text() || undefined
+
+      const date = parseNumber($el.find('.matchTime').attr('data-unix'));
+
+      let team1
+      let team2
+
+      if (!title) {
+        team1 = {
+          name:
+            $el.find('.matchTeamName').first().text() ||
+            $el.find('.team1 .team').text(),
+          id: parseNumber($el.attr('team1')),
+        }
+
+        team2 = {
+          name:
+            $el.find('.matchTeamName').eq(1).text() ||
+            $el.find('.team2 .team').text(),
+          id: parseNumber($el.attr('team2'))
+        }
+      }
+
+      const format = $el.find('.matchMeta').text()
+
+      const eventName = $el.find('.matchEventLogo').attr('title')
+      const event = events.find((x) => x.name === eventName)
+
+      return { id, date, stars, title, team1, team2, format, event, live }
+    })
+}
+
 export const getMatches =
   (config: HLTVConfig) =>
   async ({ eventIds, eventType, filter, teamIds }: GetMatchesArguments = {}): Promise<
@@ -51,56 +125,6 @@ export const getMatches =
       await fetchPage(`https://www.hltv.org/matches?${query}`, config.loadPage)
     )
 
-    const events = $('.event-filter-popup a')
-      .toArray()
-      .map((el) => ({
-        id: el.attrThen('href', (x) => Number(x.split('=').pop())),
-        name: el.find('.event-name').text()
-      }))
-      .concat(
-        $('.events-container a')
-          .toArray()
-          .map((el) => ({
-            id: el.attrThen('href', (x) => Number(x.split('=').pop())),
-            name: el.find('.featured-event-tooltip-content').text()
-          }))
-      )
-
-    return $('.liveMatch-container')
-      .toArray()
-      .concat($('.upcomingMatch').toArray())
-      .map((el) => {
-        const id = el.find('.a-reset').attrThen('href', getIdAt(2))!
-        const stars = 5 - el.find('.matchRating i.faded').length
-        const live = el.find('.matchTime.matchLive').text() === 'LIVE'
-        const title = el.find('.matchInfoEmpty').text() || undefined
-
-        const date = el.find('.matchTime').numFromAttr('data-unix')
-
-        let team1
-        let team2
-
-        if (!title) {
-          team1 = {
-            name:
-              el.find('.matchTeamName').first().text() ||
-              el.find('.team1 .team').text(),
-            id: el.numFromAttr('team1')
-          }
-
-          team2 = {
-            name:
-              el.find('.matchTeamName').eq(1).text() ||
-              el.find('.team2 .team').text(),
-            id: el.numFromAttr('team2')
-          }
-        }
-
-        const format = el.find('.matchMeta').text()
-
-        const eventName = el.find('.matchEventLogo').attr('title')
-        const event = events.find((x) => x.name === eventName)
-
-        return { id, date, stars, title, team1, team2, format, event, live }
-      })
+    const matches = parseMatchesPage($.html());
+    return matches
   }

@@ -1,7 +1,8 @@
+import * as cheerio from 'cheerio';
 import { HLTVConfig } from '../config'
 import { HLTVScraper } from '../scraper'
 import { Team } from '../shared/Team'
-import { fetchPage, getIdAt } from '../utils'
+import { fetchPage, parseNumber } from '../utils'
 
 export interface TeamRanking {
   team: Team
@@ -28,6 +29,34 @@ export interface GetTeamArguments {
     | 'december'
   day?: number
   country?: string
+}
+
+export const parseTeamRankingPage = (html: string) => {
+  const $ = cheerio.load(html);
+  
+  return $('.ranked-team')
+    .toArray()
+    .map((el) => {
+      const $el = $(el);
+      const points = Number(
+        $el.find('.points').text().replace(/\(|\)/g, '').split(' ')[0]
+      )
+      const place = Number($el.find('.position').text().substring(1))
+      
+      const id = parseNumber($el.find('.moreLink').attr('href')?.split("/")[2]) ?? 0;
+      const name = $el.find('.name').text();
+      
+      const team = {
+        name,
+        id,
+      };
+
+      const changeText = $el.find('.change').text()
+      const isNew = changeText === 'New'
+      const change = changeText === '-' || isNew ? 0 : Number(changeText)
+
+      return { points, place, team, change, isNew }
+    })
 }
 
 export const getTeamRanking =
@@ -60,25 +89,6 @@ export const getTeamRanking =
       )
     }
 
-    const teams = $('.ranked-team')
-      .toArray()
-      .map((el) => {
-        const points = Number(
-          el.find('.points').text().replace(/\(|\)/g, '').split(' ')[0]
-        )
-        const place = Number(el.find('.position').text().substring(1))
-
-        const team = {
-          name: el.find('.name').text(),
-          id: el.find('.moreLink').attrThen('href', getIdAt(2))
-        }
-
-        const changeText = el.find('.change').text()
-        const isNew = changeText === 'New'
-        const change = changeText === '-' || isNew ? 0 : Number(changeText)
-
-        return { points, place, team, change, isNew }
-      })
-
+    const teams = parseTeamRankingPage($.html());
     return teams
   }

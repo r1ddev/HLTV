@@ -13,4 +13,14 @@ export interface GetTeamArguments {
     day?: number;
     country?: string;
 }
+export declare const parseTeamRankingPage: (html: string) => {
+    points: number;
+    place: number;
+    team: {
+        name: string;
+        id: number;
+    };
+    change: number;
+    isNew: boolean;
+}[];
 export declare const getTeamRanking: (config: HLTVConfig) => ({ year, month, day, country }?: GetTeamArguments) => Promise<TeamRanking[]>;
