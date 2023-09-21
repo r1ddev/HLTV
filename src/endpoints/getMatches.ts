@@ -36,7 +36,17 @@ export interface MatchPreview {
   stars: number
 }
 
-export const parseMatchesPage = (html: string) => {
+const getPageUrl = ({ eventIds, eventType, filter, teamIds }: GetMatchesArguments = {}) => {
+  const query = stringify({
+    ...(eventIds ? { event: eventIds } : {}),
+    ...(eventType ? { eventType } : {}),
+    ...(filter ? { predefinedFilter: filter } : {}),
+    ...(teamIds ? { team: teamIds } : {})
+  })
+  return `https://www.hltv.org/matches?${query}`;
+}
+
+const parsePage = (html: string) => {
   const $ = cheerio.load(html);
 
   const events = $('.event-filter-popup a')
@@ -114,17 +124,17 @@ export const getMatches =
   async ({ eventIds, eventType, filter, teamIds }: GetMatchesArguments = {}): Promise<
     MatchPreview[]
   > => {
-    const query = stringify({
-      ...(eventIds ? { event: eventIds } : {}),
-      ...(eventType ? { eventType } : {}),
-      ...(filter ? { predefinedFilter: filter } : {}),
-      ...(teamIds ? { team: teamIds } : {})
-    })
+    const url = getPageUrl({ eventIds, eventType, filter, teamIds });
 
     const $ = HLTVScraper(
-      await fetchPage(`https://www.hltv.org/matches?${query}`, config.loadPage)
+      await fetchPage(url, config.loadPage)
     )
 
-    const matches = parseMatchesPage($.html());
+    const matches = parsePage($.html());
     return matches
   }
+
+export const getMatchesConfig = {
+  getUrl: getPageUrl,
+  parser: parsePage,
+}
