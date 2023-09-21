@@ -1,3 +1,4 @@
+import * as cheerio from 'cheerio'
 import { HLTVConfig } from '../config'
 import { HLTVPage, HLTVPageElement, HLTVScraper } from '../scraper'
 import { fromMapName, GameMap } from '../shared/GameMap'
@@ -111,64 +112,79 @@ export interface FullMatch {
   playerOfTheMatch?: Player
 }
 
+const getPageUrl = ({ id }: { id: number }) => {
+  return `https://www.hltv.org/matches/${id}/${generateRandomSuffix()}`;
+}
+
+const parsePage = (html: string) => {
+  const $ = HLTVScraper(cheerio.load(html));
+
+  const title = $('.timeAndEvent .text').trimText()
+  const date = $('.timeAndEvent .date').numFromAttr('data-unix')
+  const format = getFormat($)
+  const significance = getMatchSignificance($)
+  const status = getMatchStatus($)
+  const hasScorebot = $('#scoreboardElement').exists()
+  const statsId = getStatsId($)
+  const team1 = getTeam($, 1)
+  const team2 = getTeam($, 2)
+  const vetoes = getVetoes($, team1, team2)
+  const event = getEvent($)
+  const odds = getOdds($)
+  const oddsCommunity = getCommunityOdds($)
+  const maps = getMaps($)
+  const players = getPlayers($)
+  const streams = getStreams($)
+  const demos = getDemos($)
+  const highlightedPlayers = getHighlightedPlayers($)
+  const headToHead = getHeadToHead($)
+  const highlights = getHighlights($, team1, team2)
+  const playerOfTheMatch = getPlayerOfTheMatch($, players)
+  const winnerTeam = getWinnerTeam($, team1, team2)
+
+  return {
+    statsId,
+    significance,
+    team1,
+    team2,
+    winnerTeam,
+    date,
+    format,
+    event,
+    maps,
+    players,
+    streams,
+    status,
+    title,
+    hasScorebot,
+    highlightedPlayers,
+    playerOfTheMatch,
+    headToHead,
+    vetoes,
+    highlights,
+    demos,
+    odds: odds.concat(oddsCommunity ? [oddsCommunity] : [])
+  }
+}
+
 export const getMatch =
   (config: HLTVConfig) =>
   async ({ id }: { id: number }): Promise<FullMatch> => {
-    const $ = HLTVScraper(
-      await fetchPage(
-        `https://www.hltv.org/matches/${id}/${generateRandomSuffix()}`,
-        config.loadPage
-      )
+    const page = await fetchPage(
+      getPageUrl({id}),
+      config.loadPage
     )
-
-    const title = $('.timeAndEvent .text').trimText()
-    const date = $('.timeAndEvent .date').numFromAttr('data-unix')
-    const format = getFormat($)
-    const significance = getMatchSignificance($)
-    const status = getMatchStatus($)
-    const hasScorebot = $('#scoreboardElement').exists()
-    const statsId = getStatsId($)
-    const team1 = getTeam($, 1)
-    const team2 = getTeam($, 2)
-    const vetoes = getVetoes($, team1, team2)
-    const event = getEvent($)
-    const odds = getOdds($)
-    const oddsCommunity = getCommunityOdds($)
-    const maps = getMaps($)
-    const players = getPlayers($)
-    const streams = getStreams($)
-    const demos = getDemos($)
-    const highlightedPlayers = getHighlightedPlayers($)
-    const headToHead = getHeadToHead($)
-    const highlights = getHighlights($, team1, team2)
-    const playerOfTheMatch = getPlayerOfTheMatch($, players)
-    const winnerTeam = getWinnerTeam($, team1, team2)
 
     return {
       id,
-      statsId,
-      significance,
-      team1,
-      team2,
-      winnerTeam,
-      date,
-      format,
-      event,
-      maps,
-      players,
-      streams,
-      status,
-      title,
-      hasScorebot,
-      highlightedPlayers,
-      playerOfTheMatch,
-      headToHead,
-      vetoes,
-      highlights,
-      demos,
-      odds: odds.concat(oddsCommunity ? [oddsCommunity] : [])
-    }
+      ...parsePage(page.html())
+    };
   }
+
+export const getMatchConfig = {
+  getUrl: getPageUrl,
+  parse: parsePage,
+}
 
 function getMatchStatus($: HLTVPage): MatchStatus {
   let status = MatchStatus.Scheduled
