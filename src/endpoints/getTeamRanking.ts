@@ -59,6 +59,12 @@ export const parseTeamRankingPage = (html: string) => {
     })
 }
 
+const getPageUrl = ({ year, month, day }: GetTeamArguments = {}) => {
+  return `https://www.hltv.org/ranking/teams/${year ?? ''}/${month ?? ''}/${
+    day ?? ''
+  }`
+}
+
 export const getTeamRanking =
   (config: HLTVConfig) =>
   async ({ year, month, day, country }: GetTeamArguments = {}): Promise<
@@ -66,9 +72,7 @@ export const getTeamRanking =
   > => {
     let $ = HLTVScraper(
       await fetchPage(
-        `https://www.hltv.org/ranking/teams/${year ?? ''}/${month ?? ''}/${
-          day ?? ''
-        }`,
+        getPageUrl({year, month, day}),
         config.loadPage
       )
     )
@@ -92,3 +96,8 @@ export const getTeamRanking =
     const teams = parseTeamRankingPage($.html());
     return teams
   }
+
+export const getTeamRankingConfig = {
+  getUrl: getPageUrl,
+  parser: parseTeamRankingPage,
+}
