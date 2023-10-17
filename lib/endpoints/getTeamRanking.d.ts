@@ -24,3 +24,16 @@ export declare const parseTeamRankingPage: (html: string) => {
     isNew: boolean;
 }[];
 export declare const getTeamRanking: (config: HLTVConfig) => ({ year, month, day, country }?: GetTeamArguments) => Promise<TeamRanking[]>;
+export declare const getTeamRankingConfig: {
+    getUrl: ({ year, month, day }?: GetTeamArguments) => string;
+    parser: (html: string) => {
+        points: number;
+        place: number;
+        team: {
+            name: string;
+            id: number;
+        };
+        change: number;
+        isNew: boolean;
+    }[];
+};

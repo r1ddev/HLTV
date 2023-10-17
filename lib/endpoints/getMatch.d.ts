@@ -92,3 +92,46 @@ export interface FullMatch {
 export declare const getMatch: (config: HLTVConfig) => ({ id }: {
     id: number;
 }) => Promise<FullMatch>;
+export declare const getMatchConfig: {
+    getUrl: ({ id }: {
+        id: number;
+    }) => string;
+    parse: (html: string) => {
+        statsId: number | undefined;
+        significance: string | undefined;
+        team1: Team | undefined;
+        team2: Team | undefined;
+        winnerTeam: Team | undefined;
+        date: number | undefined;
+        format: {
+            type: MatchFormat;
+            location: MatchFormatLocation;
+        } | undefined;
+        event: Event;
+        maps: MapResult[];
+        players: {
+            team1: Player[];
+            team2: Player[];
+        };
+        streams: Stream[];
+        status: MatchStatus;
+        title: string | undefined;
+        hasScorebot: boolean;
+        highlightedPlayers: {
+            team1: {
+                name: string;
+                id: number | undefined;
+            };
+            team2: {
+                name: string;
+                id: number | undefined;
+            };
+        } | undefined;
+        playerOfTheMatch: Player | undefined;
+        headToHead: HeadToHeadResult[];
+        vetoes: Veto[];
+        highlights: Highlight[];
+        demos: Demo[];
+        odds: ProviderOdds[];
+    };
+};

@@ -27,24 +27,27 @@ export interface MatchPreview {
     live: boolean;
     stars: number;
 }
-export declare const parseMatchesPage: (html: string) => {
-    id: number;
-    date: number | undefined;
-    stars: number;
-    title: string | undefined;
-    team1: {
-        name: string;
-        id: number | undefined;
-    } | undefined;
-    team2: {
-        name: string;
-        id: number | undefined;
-    } | undefined;
-    format: string;
-    event: {
-        id: number | undefined;
-        name: string;
-    } | undefined;
-    live: boolean;
-}[];
 export declare const getMatches: (config: HLTVConfig) => ({ eventIds, eventType, filter, teamIds }?: GetMatchesArguments) => Promise<MatchPreview[]>;
+export declare const getMatchesConfig: {
+    getUrl: ({ eventIds, eventType, filter, teamIds }?: GetMatchesArguments) => string;
+    parser: (html: string) => {
+        id: number;
+        date: number | undefined;
+        stars: number;
+        title: string | undefined;
+        team1: {
+            name: string;
+            id: number | undefined;
+        } | undefined;
+        team2: {
+            name: string;
+            id: number | undefined;
+        } | undefined;
+        format: string;
+        event: {
+            id: number | undefined;
+            name: string;
+        } | undefined;
+        live: boolean;
+    }[];
+};
