@@ -13,7 +13,7 @@ export interface TeamRanking {
 }
 
 export interface GetTeamArguments {
-  year?: 2015 | 2016 | 2017 | 2018 | 2019 | 2020 | 2021 | 2022
+  year?: 2015 | 2016 | 2017 | 2018 | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 | 2025
   month?:
     | 'january'
     | 'february'
@@ -38,25 +38,47 @@ export const parseTeamRankingPage = (html: string) => {
     .toArray()
     .map((el) => {
       const $el = $(el);
-      const points = Number(
-        $el.find('.points').text().replace(/\(|\)/g, '').split(' ')[0]
-      )
-      const place = Number($el.find('.position').text().substring(1))
       
-      const id = parseNumber($el.find('.moreLink').attr('href')?.split("/")[2]) ?? 0;
-      const name = $el.find('.name').text();
+      // Позиция команды
+      const positionText = $el.find('.position').text().trim();
+      const place = parseInt(positionText.replace('#', '')) || 0;
       
-      const team = {
-        name,
-        id,
+      // Название команды
+      const name = $el.find('.teamLine .name').text().trim();
+      
+      // Очки
+      const pointsText = $el.find('.points').text().trim();
+      const points = parseInt(pointsText.replace(/[^\d]/g, '')) || 0;
+      
+      // ID команды - из ссылки на профиль в блоке lineup-con
+      const profileLink = $el.find('.lineup-con a.moreLink[href^="/team/"]').attr('href');
+      let id = 0;
+      if (profileLink) {
+        const idMatch = profileLink.match(/\/team\/(\d+)/);
+        if (idMatch && idMatch[1]) {
+          id = parseInt(idMatch[1]);
+        }
+      }
+      
+      // Изменение позиции
+      const changeText = $el.find('.change').text().trim();
+      let change = 0;
+      let isNew = false;
+      
+      if (changeText === 'New') {
+        isNew = true;
+      } else if (changeText !== '-') {
+        change = parseInt(changeText) || 0;
+      }
+      
+      return {
+        team: { id, name },
+        points,
+        place,
+        change,
+        isNew
       };
-
-      const changeText = $el.find('.change').text()
-      const isNew = changeText === 'New'
-      const change = changeText === '-' || isNew ? 0 : Number(changeText)
-
-      return { points, place, team, change, isNew }
-    })
+    });
 }
 
 const getPageUrl = ({ year, month, day }: GetTeamArguments = {}) => {
