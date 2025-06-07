@@ -48,82 +48,62 @@ const getPageUrl = ({ eventIds, eventType, filter, teamIds }: GetMatchesArgument
 
 const parsePage = (html: string) => {
   const $ = cheerio.load(html);
+  const matches: MatchPreview[] = [];
 
-  const events = $('.event-filter-popup a')
-    .toArray()
-    .map((el) => {
-      const $el = $(el);
+  // Обработка всех матчей
+  $('.match-wrapper').each((i, el) => {
+    const $el = $(el);
+    const id = Number($el.attr('data-match-id'));
+    const live = $el.attr('live') === 'true';
+    const stars = $el.find('.match-rating .fa-star:not(.faded)').length;
+    const eventId = Number($el.attr('data-event-id')) || undefined;
 
-      const id = parseNumber($el.attr('href')?.split('=').pop());
-      const name = $el.find('.event-name').text();
+    // Извлечение информации о командах
+    const team1Id = Number($el.attr('team1'));
+    const team2Id = Number($el.attr('team2'));
+    const team1Name = $el.find('.match-team:first-child .match-teamname').text().trim();
+    const team2Name = $el.find('.match-team:last-child .match-teamname').text().trim();
 
-      return {
-        id,
-        name,
+    // Извлечение формата и времени
+    const $matchInfo = $el.find('.match-info');
+    let format: string | undefined;
+    let date: number | undefined;
+
+    $matchInfo.children().each((_, child) => {
+      const $child = $(child);
+      if ($child.hasClass('match-meta') && !$child.hasClass('match-meta-live')) {
+        format = $child.text().trim();
       }
-    })
-    .concat(
-      $('.events-container a')
-        .toArray()
-        .map((el) => {
-          const $el = $(el);
-
-          const id = parseNumber($el.attr('href')?.split('=').pop());
-          const name = $el.find('.featured-event-tooltip-content').text()
-
-          return {
-            id,
-            name,
-          }
-        })
-    )
-
-  return $('.liveMatch-container')
-    .toArray()
-    .concat($('.upcomingMatch').toArray())
-    .map((el) => {
-      const $el = $(el);
-
-      const id = parseNumber($el.find('.a-reset').attr('href')?.split('/')[2]) ?? 0;
-      const stars = 5 - $el.find('.matchRating i.faded').length
-      const live = $el.find('.matchTime.matchLive').text() === 'LIVE'
-      const title = $el.find('.matchInfoEmpty').text() || undefined
-
-      const date = parseNumber($el.find('.matchTime').attr('data-unix'));
-
-      let team1
-      let team2
-
-      if (!title) {
-        team1 = {
-          name:
-            $el.find('.matchTeamName').first().text() ||
-            $el.find('.team1 .team').text(),
-          id: parseNumber($el.attr('team1')),
-        }
-
-        team2 = {
-          name:
-            $el.find('.matchTeamName').eq(1).text() ||
-            $el.find('.team2 .team').text(),
-          id: parseNumber($el.attr('team2'))
-        }
+      if ($child.hasClass('match-time')) {
+        date = Number($child.attr('data-unix'));
       }
+    });
 
-      const format = $el.find('.matchMeta').text()
+    // Извлечение информации о турнире
+    let eventName: string | undefined;
+    const eventElement = $el.find('.match-top .match-event');
+    if (eventElement.length) {
+      eventName = eventElement.clone().children().remove().end().text().trim();
+    }
 
-      const eventName = $el.find('.matchEventLogo').attr('title')
-      const event = events.find((x) => x.name === eventName)
+    matches.push({
+      id,
+      team1: team1Name ? { id: team1Id, name: team1Name } : undefined,
+      team2: team2Name ? { id: team2Id, name: team2Name } : undefined,
+      date,
+      format,
+      event: eventId && eventName ? { id: eventId, name: eventName } : undefined,
+      stars,
+      live
+    });
+  });
 
-      return { id, date, stars, title, team1, team2, format, event, live }
-    })
-}
+  return matches;
+};
 
 export const getMatches =
   (config: HLTVConfig) =>
-  async ({ eventIds, eventType, filter, teamIds }: GetMatchesArguments = {}): Promise<
-    MatchPreview[]
-  > => {
+  async ({ eventIds, eventType, filter, teamIds }: GetMatchesArguments = {}): Promise<MatchPreview[]> => {
     const url = getPageUrl({ eventIds, eventType, filter, teamIds });
 
     const $ = HLTVScraper(
