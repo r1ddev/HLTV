@@ -27,7 +27,7 @@ const log = (promise: Promise<any>) =>
 // log(HLTV.getPastEvents({ startDate: '2019-3-1', endDate: '2019-3-29' }))
 // log(HLTV.getTeamRanking())
 const todayDate = "2025-06-10";
-log(HLTV.getResults({ startDate: todayDate, endDate: todayDate }))
+log(HLTV.getResults({}))
 // log(HLTV.getTeamRanking());
 // log(HLTV.getNews())
 

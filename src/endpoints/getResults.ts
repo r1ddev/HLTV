@@ -25,47 +25,51 @@ export enum GameType {
 }
 
 export interface ResultTeam {
-  name: string;
-  logo: string;
+  name: string
+  logo: string
 }
 
 export interface FullMatchResult {
-  id: number;
-  date: number;
-  team1: ResultTeam;
-  team2: ResultTeam;
-  event: string;
-  stars: number;
-  format: string;
-  map?: GameMap;
+  id: number
+  date: number
+  team1: ResultTeam
+  team2: ResultTeam
+  event: string
+  stars: number
+  format: string
+  map?: GameMap
   result: {
-    team1: number;
-    team2: number;
+    team1: number
+    team2: number
   }
 }
 
 export interface GetResultsArguments {
-  startDate?: string;
-  endDate?: string;
-  matchType?: ResultsMatchType;
-  maps?: GameMap[];
-  bestOfX?: BestOfFilter;
-  countries?: string[];
-  contentFilters?: ContentFilter[];
-  eventIds?: number[];
-  playerIds?: number[];
-  teamIds?: number[];
-  game?: GameType;
-  stars?: 1 | 2 | 3 | 4 | 5;
-  delayBetweenPageRequests?: number;
+  startDate?: string
+  endDate?: string
+  matchType?: ResultsMatchType
+  maps?: GameMap[]
+  bestOfX?: BestOfFilter
+  countries?: string[]
+  contentFilters?: ContentFilter[]
+  eventIds?: number[]
+  playerIds?: number[]
+  teamIds?: number[]
+  game?: GameType
+  stars?: 1 | 2 | 3 | 4 | 5
+  delayBetweenPageRequests?: number
+  deep?: number
 }
 
-const getPageUrl = (options: GetResultsArguments = {}, page: number = 0) => {
+const getPageUrl = (
+  options: GetResultsArguments = {},
+  page: number = 0
+) => {
   const query = stringify({
     ...(options.startDate ? { startDate: options.startDate } : {}),
     ...(options.endDate ? { endDate: options.endDate } : {}),
     ...(options.matchType ? { matchType: options.matchType } : {}),
-    ...(options.maps ? { map: options.maps.map(m => m.toLowerCase()) } : {}),
+    ...(options.maps ? { map: options.maps.map((m) => m.toLowerCase()) } : {}),
     ...(options.bestOfX ? { bestOfX: options.bestOfX } : {}),
     ...(options.countries ? { country: options.countries } : {}),
     ...(options.contentFilters ? { content: options.contentFilters } : {}),
@@ -75,56 +79,58 @@ const getPageUrl = (options: GetResultsArguments = {}, page: number = 0) => {
     ...(options.game ? { gameType: options.game } : {}),
     ...(options.stars ? { stars: options.stars } : {})
   })
-  return `https://www.hltv.org/results?${query}&offset=${page * 100}`;
+  return `https://www.hltv.org/results?${query}&offset=${page * 100}`
 }
 
 const parsePage = (html: string) => {
-  const $ = cheerio.load(html);
+  const $ = cheerio.load(html)
   const results: FullMatchResult[] = []
 
   const matchElements = $('.result-con').toArray()
 
   // Если матчей нет - заканчиваем пагинацию
-  if (matchElements.length === 0) return;
+  if (matchElements.length === 0) return
 
   for (const el of matchElements) {
     try {
-      const $el = $(el);
-      const href = $el.find('a').first().attr('href');
-      const id = href ? parseInt(href.split('/')[2]) : NaN;
-      if (isNaN(id)) continue;
+      const $el = $(el)
+      const href = $el.find('a').first().attr('href')
+      const id = href ? parseInt(href.split('/')[2]) : NaN
+      if (isNaN(id)) continue
 
-      const stars = $el.find('.stars .star').length;
-      const unixTimeMillis = parseInt($el.attr('data-zonedgrouping-entry-unix') || '0');
-      const date = Math.floor(unixTimeMillis / 1000);
+      const stars = $el.find('.stars .star').length
+      const unixTimeMillis = parseInt(
+        $el.attr('data-zonedgrouping-entry-unix') || '0'
+      )
+      const date = Math.floor(unixTimeMillis / 1000)
 
       // Извлекаем данные команд
       const team1 = {
         name: $el.find('.team').first().text().trim(),
         logo: $el.find('img.team-logo').first().attr('src') || ''
-      };
+      }
 
       const team2 = {
         name: $el.find('.team').last().text().trim(),
         logo: $el.find('img.team-logo').last().attr('src') || ''
-      };
+      }
 
-      const event = $el.find('.event-name').text().trim();
+      const event = $el.find('.event-name').text().trim()
 
       // Парсим счет
-      const scoreText = $el.find('.result-score').text().trim();
-      const [score1, score2] = scoreText.split(' - ').map(Number);
-      
+      const scoreText = $el.find('.result-score').text().trim()
+      const [score1, score2] = scoreText.split(' - ').map(Number)
+
       // Определяем формат матча и карту
-      const formatText = $el.find('.map-text').text().trim();
-      let map: GameMap | undefined;
-      let format: string;
+      const formatText = $el.find('.map-text').text().trim()
+      let map: GameMap | undefined
+      let format: string
 
       if (formatText.includes('bo')) {
-        format = formatText;
+        format = formatText
       } else {
-        map = fromMapSlug(formatText);
-        format = 'bo1';
+        map = fromMapSlug(formatText)
+        format = 'bo1'
       }
 
       results.push({
@@ -140,49 +146,46 @@ const parsePage = (html: string) => {
         },
         format,
         ...(map ? { map } : {})
-      });
+      })
     } catch (e) {
-      console.error(`Error parsing match: ${e}`);
+      console.error(`Error parsing match: ${e}`)
     }
   }
-  return results;
+  return results
 }
 
-export const getResults = 
-  (config: HLTVConfig) => 
+export const getResults =
+  (config: HLTVConfig) =>
   async (options: GetResultsArguments): Promise<FullMatchResult[]> => {
     let page = 0
     const results: FullMatchResult[] = []
 
     while (true) {
-      if (page > 10) break;
+      if (page > (options.deep ?? 1)) break
 
       await sleep(options.delayBetweenPageRequests ?? 0)
 
-      const url = getPageUrl(options, page);
+      const url = getPageUrl(options, page)
 
+      const $ = HLTVScraper(await fetchPage(url, config.loadPage))
 
-      const $ = HLTVScraper(
-        await fetchPage(url, config.loadPage)
-      );
-
-      const pageResults = parsePage($.html());
+      const pageResults = parsePage($.html())
 
       // Если матчей нет - заканчиваем пагинацию
-      if (!pageResults) break;
+      if (!pageResults) break
 
-      results.push(...pageResults);
+      results.push(...pageResults)
 
       // матчей меньше 100 -- следующей страницы нет
-      if (pageResults.length < 100) break;
+      if (pageResults.length < 100) break
 
       page++
     }
 
     return results
-  };
+  }
 
 export const getResultsConfig = {
   getUrl: getPageUrl,
-  parser: parsePage,
+  parser: parsePage
 }

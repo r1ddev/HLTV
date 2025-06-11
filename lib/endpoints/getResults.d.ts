@@ -47,6 +47,7 @@ export interface GetResultsArguments {
     game?: GameType;
     stars?: 1 | 2 | 3 | 4 | 5;
     delayBetweenPageRequests?: number;
+    deep?: number;
 }
 export declare const getResults: (config: HLTVConfig) => (options: GetResultsArguments) => Promise<FullMatchResult[]>;
 export declare const getResultsConfig: {
