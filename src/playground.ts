@@ -1,4 +1,7 @@
+import cheerio from 'cheerio'
+import { getResultsConfig } from './endpoints/getResults';
 import { HLTV, Hltv } from './index'
+import { HLTVScraper } from './scraper';
 
 const log = (promise: Promise<any>) =>
   promise
@@ -7,8 +10,8 @@ const log = (promise: Promise<any>) =>
     
 // HLTV.getMatch({ id: 2356133 }).then(res => {
 //   console.log(res.streams);
-// });.
-// log(new Hltv({requestMethod: 'playwright'}).getMatches())
+// });
+// log(HLTV.getMatches())
 // log(HLTV.getEvent({ id: 5741 }))
 // log(HLTV.getEvents())
 // log(HLTV.getMatchMapStats({ id: 115827 }))
@@ -23,9 +26,9 @@ const log = (promise: Promise<any>) =>
 // log(HLTV.getTeamStats({ id: 10566 }))
 // log(HLTV.getPastEvents({ startDate: '2019-3-1', endDate: '2019-3-29' }))
 // log(HLTV.getTeamRanking())
-// log(HLTV.getResults({ eventIds: [1617] }))
-// const todayDate = "2022-04-25";
-// log(HLTV.getResults({startDate: todayDate, endDate: todayDate}))
+const todayDate = "2025-06-10";
+log(HLTV.getResults({ startDate: todayDate, endDate: todayDate }))
+// log(HLTV.getTeamRanking());
 // log(HLTV.getNews())
 
 const isEmptyObject = function(e: any) {

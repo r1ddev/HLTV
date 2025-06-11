@@ -1,4 +1,5 @@
 import { HLTVConfig } from '../config';
+import { HLTVPage } from '../scraper';
 import { BestOfFilter } from '../shared/BestOfFilter';
 import { GameMap } from '../shared/GameMap';
 export declare enum ResultsMatchType {
@@ -49,3 +50,7 @@ export interface GetResultsArguments {
     delayBetweenPageRequests?: number;
 }
 export declare const getResults: (config: HLTVConfig) => (options: GetResultsArguments) => Promise<FullMatchResult[]>;
+export declare const getResultsConfig: {
+    getUrl: (options?: GetResultsArguments, page?: number) => string;
+    parser: ($: HLTVPage) => FullMatchResult[] | undefined;
+};
