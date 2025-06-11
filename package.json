@@ -1,6 +1,6 @@
 {
   "name": "hltv",
-  "version": "3.4.12",
+  "version": "3.4.13",
   "description": "The unofficial HLTV Node.js API",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -57,7 +57,6 @@
     "@types/socket.io-client": "1.4.36",
     "got-scraping": "^3.2.13",
     "cheerio": "1.0.0-rc.10",
-    "playwright": "^1.31.2",
     "socket.io-client": "2.4.0",
     "uuid": "8.3.2"
   }
