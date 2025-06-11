@@ -78,7 +78,8 @@ const getPageUrl = (options: GetResultsArguments = {}, page: number = 0) => {
   return `https://www.hltv.org/results?${query}&offset=${page * 100}`;
 }
 
-const parsePage = ($: HLTVPage) => {
+const parsePage = (html: string) => {
+  const $ = cheerio.load(html);
   const results: FullMatchResult[] = []
 
   const matchElements = $('.result-con').toArray()
@@ -88,33 +89,34 @@ const parsePage = ($: HLTVPage) => {
 
   for (const el of matchElements) {
     try {
-      const href = el.find('a').first().attr('href');
+      const $el = $(el);
+      const href = $el.find('a').first().attr('href');
       const id = href ? parseInt(href.split('/')[2]) : NaN;
       if (isNaN(id)) continue;
 
-      const stars = el.find('.stars .star').length;
-      const unixTimeMillis = parseInt(el.attr('data-zonedgrouping-entry-unix') || '0');
+      const stars = $el.find('.stars .star').length;
+      const unixTimeMillis = parseInt($el.attr('data-zonedgrouping-entry-unix') || '0');
       const date = Math.floor(unixTimeMillis / 1000);
 
       // Извлекаем данные команд
       const team1 = {
-        name: el.find('.team').first().text().trim(),
-        logo: el.find('img.team-logo').first().attr('src') || ''
+        name: $el.find('.team').first().text().trim(),
+        logo: $el.find('img.team-logo').first().attr('src') || ''
       };
 
       const team2 = {
-        name: el.find('.team').last().text().trim(),
-        logo: el.find('img.team-logo').last().attr('src') || ''
+        name: $el.find('.team').last().text().trim(),
+        logo: $el.find('img.team-logo').last().attr('src') || ''
       };
 
-      const event = el.find('.event-name').text().trim();
+      const event = $el.find('.event-name').text().trim();
 
       // Парсим счет
-      const scoreText = el.find('.result-score').text().trim();
+      const scoreText = $el.find('.result-score').text().trim();
       const [score1, score2] = scoreText.split(' - ').map(Number);
       
       // Определяем формат матча и карту
-      const formatText = el.find('.map-text').text().trim();
+      const formatText = $el.find('.map-text').text().trim();
       let map: GameMap | undefined;
       let format: string;
 
@@ -164,7 +166,7 @@ export const getResults =
         await fetchPage(url, config.loadPage)
       );
 
-      const pageResults = parsePage($);
+      const pageResults = parsePage($.html());
 
       // Если матчей нет - заканчиваем пагинацию
       if (!pageResults) break;
