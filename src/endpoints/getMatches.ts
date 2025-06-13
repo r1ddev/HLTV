@@ -48,57 +48,73 @@ const getPageUrl = ({ eventIds, eventType, filter, teamIds }: GetMatchesArgument
 
 const parsePage = (html: string) => {
   const $ = cheerio.load(html);
-  const matches: MatchPreview[] = [];
-
-  // Обработка всех матчей
-  $('.match-wrapper').each((i, el) => {
+  const matchesMap = new Map<number, MatchPreview>();
+  
+  // Парсинг live-матчей
+  $('.liveMatches .match-wrapper').each((_, el) => {
     const $el = $(el);
-    const id = Number($el.attr('data-match-id'));
-    const live = $el.attr('live') === 'true';
-    const stars = $el.find('.match-rating .fa-star:not(.faded)').length;
-    const eventId = Number($el.attr('data-event-id')) || undefined;
-
-    // Извлечение информации о командах
-    const team1Id = Number($el.attr('team1'));
-    const team2Id = Number($el.attr('team2'));
-    const team1Name = $el.find('.match-team:first-child .match-teamname').text().trim();
-    const team2Name = $el.find('.match-team:last-child .match-teamname').text().trim();
-
-    // Извлечение формата и времени
-    const $matchInfo = $el.find('.match-info');
-    let format: string | undefined;
-    let date: number | undefined;
-
-    $matchInfo.children().each((_, child) => {
-      const $child = $(child);
-      if ($child.hasClass('match-meta') && !$child.hasClass('match-meta-live')) {
-        format = $child.text().trim();
-      }
-      if ($child.hasClass('match-time')) {
-        date = Number($child.attr('data-unix'));
-      }
-    });
-
-    // Извлечение информации о турнире
-    let eventName: string | undefined;
-    const eventElement = $el.find('.match-top .match-event');
-    if (eventElement.length) {
-      eventName = eventElement.clone().children().remove().end().text().trim();
+    const match = parseMatch($el);
+    if (match) {
+      match.live = true;
+      matchesMap.set(match.id, match);
     }
-
-    matches.push({
-      id,
-      team1: team1Name ? { id: team1Id, name: team1Name } : undefined,
-      team2: team2Name ? { id: team2Id, name: team2Name } : undefined,
-      date,
-      format,
-      event: eventId && eventName ? { id: eventId, name: eventName } : undefined,
-      stars,
-      live
-    });
   });
 
-  return matches;
+  // Парсинг предстоящих матчей
+  $('.matches-list-wrapper .match-wrapper').each((_, el) => {
+    const $el = $(el);
+    const match = parseMatch($el);
+    if (match && !matchesMap.has(match.id)) {
+      match.live = false;
+      matchesMap.set(match.id, match);
+    }
+  });
+
+  return Array.from(matchesMap.values());
+};
+
+const parseMatch = ($el: cheerio.Cheerio): MatchPreview | null => {
+  try {
+    const id = parseInt($el.attr('data-match-id') || '0');
+    if (!id) return null;
+
+    const stars = $el.find('.match-rating .fa-star:not(.faded)').length;
+    const live = $el.attr('live') === 'true';
+    
+    // Извлечение информации о командах из атрибутов контейнера
+    const team1Id = parseInt($el.attr('team1') || '0');
+    const team2Id = parseInt($el.attr('team2') || '0');
+    const team1Name = $el.find('.match-team:first-child .match-teamname').text().trim();
+    const team2Name = $el.find('.match-team:last-child .match-teamname').text().trim();
+    
+    const team1 = team1Id && team1Name ? { id: team1Id, name: team1Name } : undefined;
+    const team2 = team2Id && team2Name ? { id: team2Id, name: team2Name } : undefined;
+    
+    // Извлечение формата
+    const format = $el.find('.match-meta:not(.match-meta-live)').text().trim();
+    
+    // Извлечение времени (в Unix timestamp)
+    const date = parseInt($el.find('.match-time').attr('data-unix') || '0') || undefined;
+    
+    // Извлечение информации о турнире
+    const eventId = parseInt($el.attr('data-event-id') || '0');
+    const eventName = $el.find('.match-event .text-ellipsis').first().text().trim();
+    const event = eventId && eventName ? { id: eventId, name: eventName } : undefined;
+
+    return {
+      id,
+      team1,
+      team2,
+      date,
+      format,
+      event,
+      stars,
+      live
+    };
+  } catch (e) {
+    console.error('Error parsing match:', e);
+    return null;
+  }
 };
 
 export const getMatches =

@@ -11,7 +11,7 @@ const log = (promise: Promise<any>) =>
 // HLTV.getMatch({ id: 2356133 }).then(res => {
 //   console.log(res.streams);
 // });
-// log(HLTV.getMatches())
+log(HLTV.getMatches())
 // log(HLTV.getEvent({ id: 5741 }))
 // log(HLTV.getEvents())
 // log(HLTV.getMatchMapStats({ id: 115827 }))
@@ -26,8 +26,8 @@ const log = (promise: Promise<any>) =>
 // log(HLTV.getTeamStats({ id: 10566 }))
 // log(HLTV.getPastEvents({ startDate: '2019-3-1', endDate: '2019-3-29' }))
 // log(HLTV.getTeamRanking())
-const todayDate = "2025-06-10";
-log(HLTV.getResults({}))
+// const todayDate = "2025-06-10";
+// log(HLTV.getResults({}))
 // log(HLTV.getTeamRanking());
 // log(HLTV.getNews())
 
