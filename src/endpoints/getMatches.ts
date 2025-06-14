@@ -98,7 +98,7 @@ const parseMatch = ($el: cheerio.Cheerio): MatchPreview | null => {
     
     // Извлечение информации о турнире
     const eventId = parseInt($el.attr('data-event-id') || '0');
-    const eventName = $el.find('.match-event .text-ellipsis').first().text().trim();
+    const eventName = $el.find('.match-event').first().text().trim();
     const event = eventId && eventName ? { id: eventId, name: eventName } : undefined;
 
     return {
