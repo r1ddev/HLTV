@@ -119,6 +119,7 @@ const getPageUrl = ({ id }: { id: number }) => {
 const parsePage = (html: string) => {
   const $ = HLTVScraper(cheerio.load(html));
 
+  const matchId = $('link[rel="canonical"]').attr('href').split('/')[4];
   const title = $('.timeAndEvent .text').trimText()
   const date = $('.timeAndEvent .date').numFromAttr('data-unix')
   const format = getFormat($)
@@ -143,6 +144,7 @@ const parsePage = (html: string) => {
   const winnerTeam = getWinnerTeam($, team1, team2)
 
   return {
+    id: Number(matchId),
     statsId,
     significance,
     team1,
@@ -175,10 +177,7 @@ export const getMatch =
       config.loadPage
     )
 
-    return {
-      id,
-      ...parsePage(page.html())
-    };
+    return parsePage(page.html());
   }
 
 export const getMatchConfig = {

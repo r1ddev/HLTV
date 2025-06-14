@@ -97,6 +97,7 @@ export declare const getMatchConfig: {
         id: number;
     }) => string;
     parse: (html: string) => {
+        id: number;
         statsId: number | undefined;
         significance: string | undefined;
         team1: Team | undefined;
